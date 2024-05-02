@@ -1,4 +1,5 @@
 import os.path
+import shutil
 from tkinter import filedialog as fd
 
 import pandas as pd
@@ -17,8 +18,12 @@ import pandas as pd
 def run():
     file_name = open_file()
     sheet_names = get_sheet_names(file_name)
+
     directory = fd.askdirectory()
     create_folders(directory, sheet_names)
+
+    all_pdf_dir = fd.askdirectory()
+    copy(all_pdf_dir, directory, None)
 
 
 def open_file() -> str:
@@ -31,10 +36,27 @@ def get_sheet_names(file_name: str) -> list:
     return file.sheet_names
 
 
-def create_folders(directory, names):
+def create_folders(directory: str, names: list):
     for name in names:
         path = os.path.join(directory, name)
-        os.mkdir(path)
+        if not os.path.exists(path):
+            os.mkdir(path)
+
+
+def copy(all_pdf_dir: str, save_dir: str, pdf_names: dict):
+    pdf_names = {'Sheet1': ('pdf1_sheet1', 'pdf2_sheet1', 'pdf3_sheet1'),
+                 'Лист2': ('pdf1_sheet2', 'pdf2_sheet2', 'pdf3_sheet2'),
+                 'Sheet3': ('pdf1_sheet3', 'pdf2_sheet3', 'pdf3_sheet3'),
+                 'Лист4': ('pdf1_sheet4', 'pdf2_sheet4', 'pdf3_sheet4')}
+
+    for key, val in pdf_names.items():
+        for value in val:
+            name = f'{value}.pdf'
+            path_old = os.path.join(all_pdf_dir, name)
+            path_new = os.path.join(save_dir, key, name)
+
+            if not os.path.exists(path_new):
+                shutil.copy(path_old, path_new)
 
 
 if __name__ == "__main__":
