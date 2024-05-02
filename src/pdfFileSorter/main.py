@@ -17,11 +17,17 @@ from openpyxl import load_workbook
 
 def run():
     file_name = open_file()
+    sheet_names = get_sheet_names(file_name)
 
 
 def open_file() -> str:
     types = (('Excel файлы', '*.xls;*.xlsx;*.xlsm'),)
     return fd.askopenfilename(filetypes=types)
+
+
+def get_sheet_names(file_name: str) -> list:
+    file = pd.ExcelFile(file_name)
+    return file.sheet_names
 
 
 if __name__ == "__main__":
