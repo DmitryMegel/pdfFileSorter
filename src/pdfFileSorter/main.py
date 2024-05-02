@@ -1,8 +1,7 @@
 import os.path
-import tkinter as tk
 from tkinter import filedialog as fd
+
 import pandas as pd
-from openpyxl import load_workbook
 
 """
 Сортировщик PDF файлов
@@ -18,7 +17,8 @@ from openpyxl import load_workbook
 def run():
     file_name = open_file()
     sheet_names = get_sheet_names(file_name)
-    create_folders(sheet_names)
+    directory = fd.askdirectory()
+    create_folders(directory, sheet_names)
 
 
 def open_file() -> str:
@@ -31,9 +31,7 @@ def get_sheet_names(file_name: str) -> list:
     return file.sheet_names
 
 
-def create_folders(names):
-    directory = fd.askdirectory()
-
+def create_folders(directory, names):
     for name in names:
         path = os.path.join(directory, name)
         os.mkdir(path)
