@@ -22,8 +22,10 @@ def run():
     directory = fd.askdirectory()
     create_folders(directory, sheet_names)
 
+    pdf_names = get_pdf_file_names(file_name, sheet_names)
+
     all_pdf_dir = fd.askdirectory()
-    copy(all_pdf_dir, directory, None)
+    copy(all_pdf_dir, directory, pdf_names)
 
 
 def open_file() -> str:
@@ -43,11 +45,19 @@ def create_folders(directory: str, names: list):
             os.mkdir(path)
 
 
+def get_pdf_file_names(file_name, list_names):
+    sheet_pdf = {}
+    cols = [1]
+
+    for sheet_name in list_names:
+        data = pd.read_excel(file_name, sheet_name=sheet_name, usecols=cols, skiprows=1)
+        datas = data.iloc[:, 0].tolist()
+        sheet_pdf.__setitem__(sheet_name, datas)
+
+    return sheet_pdf
+
+
 def copy(all_pdf_dir: str, save_dir: str, pdf_names: dict):
-    pdf_names = {'Sheet1': ('pdf1_sheet1', 'pdf2_sheet1', 'pdf3_sheet1'),
-                 'Лист2': ('pdf1_sheet2', 'pdf2_sheet2', 'pdf3_sheet2'),
-                 'Sheet3': ('pdf1_sheet3', 'pdf2_sheet3', 'pdf3_sheet3'),
-                 'Лист4': ('pdf1_sheet4', 'pdf2_sheet4', 'pdf3_sheet4')}
 
     for key, val in pdf_names.items():
         for value in val:
