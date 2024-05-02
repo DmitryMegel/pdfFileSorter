@@ -18,6 +18,7 @@ from openpyxl import load_workbook
 def run():
     file_name = open_file()
     sheet_names = get_sheet_names(file_name)
+    create_folders(sheet_names)
 
 
 def open_file() -> str:
@@ -28,6 +29,14 @@ def open_file() -> str:
 def get_sheet_names(file_name: str) -> list:
     file = pd.ExcelFile(file_name)
     return file.sheet_names
+
+
+def create_folders(names):
+    directory = fd.askdirectory()
+
+    for name in names:
+        path = os.path.join(directory, name)
+        os.mkdir(path)
 
 
 if __name__ == "__main__":
