@@ -2,7 +2,9 @@ import os.path
 import shutil
 from tkinter import filedialog as fd
 
+import openpyxl
 import pandas as pd
+import numpy as np
 
 """
 Сортировщик PDF файлов
@@ -22,7 +24,7 @@ def run():
     directory = fd.askdirectory()
     create_folders(directory, sheet_names)
 
-    pdf_names = get_pdf_file_names(file_name, sheet_names)
+    pdf_names = get_pdf_names(file_name, sheet_names)
 
     all_pdf_dir = fd.askdirectory()
     copy(all_pdf_dir, directory, pdf_names)
@@ -45,16 +47,20 @@ def create_folders(directory: str, names: list):
             os.mkdir(path)
 
 
-def get_pdf_file_names(file_name, list_names):
-    sheet_pdf = {}
+def get_pdf_names(file_name, list_names):
+    pdf_names = {}
     cols = [1]
 
     for sheet_name in list_names:
-        data = pd.read_excel(file_name, sheet_name=sheet_name, usecols=cols, skiprows=1)
-        datas = data.iloc[:, 0].tolist()
-        sheet_pdf.__setitem__(sheet_name, datas)
+        if sheet_name == 'Общая':
+            continue
 
-    return sheet_pdf
+        dataframe = pd.read_excel(file_name, sheet_name=sheet_name, usecols=cols, skiprows=1)
+        datas = dataframe.iloc[:, 0].tolist()
+        datas = [i for i in datas if i != ' ']
+        pdf_names.__setitem__(sheet_name, datas)
+
+    return pdf_names
 
 
 def copy(all_pdf_dir: str, save_dir: str, pdf_names: dict):
