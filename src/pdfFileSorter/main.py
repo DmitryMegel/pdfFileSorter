@@ -1,6 +1,6 @@
 import os.path
 import shutil
-from tkinter import filedialog as fd
+from tkinter import filedialog as fd, Tk, Button, Label, Entry
 
 import pandas as pd
 
@@ -15,7 +15,50 @@ import pandas as pd
 """
 
 
+class SorterGUI(Tk):
+
+    def __init__(self):
+        super().__init__()
+
+        self.excel_path_lb = Label(self, text="Книга Excel:")
+        self.excel_path_lb.grid(row=0, column=0)
+
+        self.unsorted_dir_lb = Label(self, text="Папка с PDF файлами:")
+        self.unsorted_dir_lb.grid(row=2, column=0)
+
+        self.sorted_dir_lb = Label(self, text="Папка для сортировки:")
+        self.sorted_dir_lb.grid(row=4, column=0)
+
+        self.info = Label(self)
+        self.info.grid(row=7, column=0)
+
+        self.excel_path_f = Entry(self, width=80)
+        self.excel_path_f.grid(row=1, column=0, padx=5, pady=5)
+
+        self.unsorted_dir_f = Entry(self, width=80)
+        self.unsorted_dir_f.grid(row=3, column=0, padx=5, pady=5)
+
+        self.sorted_dir_f = Entry(self, width=80)
+        self.sorted_dir_f.grid(row=5, column=0, padx=5, pady=5)
+
+        self.excel_path_b = Button(self, text='Выбрать')
+        self.excel_path_b.grid(row=1, column=1, padx=5, pady=5)
+
+        self.unsorted_dir_b = Button(self, text='Выбрать')
+        self.unsorted_dir_b.grid(row=3, column=1, padx=5, pady=5)
+
+        self.sorted_dir_b = Button(self, text='Выбрать')
+        self.sorted_dir_b.grid(row=5, column=1, padx=5, pady=5)
+
+        self.sort_b = Button(self, text='Сортировать')
+        self.sort_b.grid(row=6, column=0, pady=5)
+
+
 def run():
+    sorter = SorterGUI()
+    sorter.title("Сортировка PDF файлов на основе книги Excel")
+    sorter.mainloop()
+
     file_name = open_file()
     sheet_names = get_sheet_names(file_name)
 
