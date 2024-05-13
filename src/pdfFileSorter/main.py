@@ -47,7 +47,7 @@ class SorterGUI(Tk):
         self.unsorted_dir_b = Button(self, text='Выбрать', command=self.select_unsorted_dir)
         self.unsorted_dir_b.grid(row=3, column=1, padx=5, pady=5)
 
-        self.sorted_dir_b = Button(self, text='Выбрать')
+        self.sorted_dir_b = Button(self, text='Выбрать', command=self.select_sorted_dir)
         self.sorted_dir_b.grid(row=5, column=1, padx=5, pady=5)
 
         self.sort_b = Button(self, text='Сортировать')
@@ -65,6 +65,13 @@ class SorterGUI(Tk):
 
         self.unsorted_dir_f.delete(0, END)
         self.unsorted_dir_f.insert(0, path)
+
+    def select_sorted_dir(self):
+        path = fd.askdirectory()
+
+        self.sorted_dir_f.delete(0, END)
+        self.sorted_dir_f.insert(0, path)
+
 
 
 def run():
