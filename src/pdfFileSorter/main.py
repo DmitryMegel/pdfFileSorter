@@ -1,6 +1,6 @@
 import os.path
 import shutil
-from tkinter import filedialog as fd, Tk, Button, Label, Entry
+from tkinter import filedialog as fd, Tk, Button, Label, Entry, END
 
 import pandas as pd
 
@@ -41,7 +41,7 @@ class SorterGUI(Tk):
         self.sorted_dir_f = Entry(self, width=80)
         self.sorted_dir_f.grid(row=5, column=0, padx=5, pady=5)
 
-        self.excel_path_b = Button(self, text='Выбрать')
+        self.excel_path_b = Button(self, text='Выбрать', command=self.select_excel_file)
         self.excel_path_b.grid(row=1, column=1, padx=5, pady=5)
 
         self.unsorted_dir_b = Button(self, text='Выбрать')
@@ -52,6 +52,13 @@ class SorterGUI(Tk):
 
         self.sort_b = Button(self, text='Сортировать')
         self.sort_b.grid(row=6, column=0, pady=5)
+
+    def select_excel_file(self):
+        types = (('Excel файлы', '*.xls;*.xlsx;*.xlsm'),)
+        path = fd.askopenfilename(filetypes=types)
+
+        self.excel_path_f.delete(0, END)
+        self.excel_path_f.insert(0, path)
 
 
 def run():
