@@ -56,21 +56,19 @@ class SorterGUI(Tk):
     def select_excel_file(self):
         types = (('Excel файлы', '*.xls;*.xlsx;*.xlsm'),)
         path = fd.askopenfilename(filetypes=types)
-
-        self.excel_path_f.delete(0, END)
-        self.excel_path_f.insert(0, path)
+        self.update_field(path, self.excel_path_f)
 
     def select_unsorted_dir(self):
         path = fd.askdirectory()
-
-        self.unsorted_dir_f.delete(0, END)
-        self.unsorted_dir_f.insert(0, path)
+        self.update_field(path, self.unsorted_dir_f)
 
     def select_sorted_dir(self):
         path = fd.askdirectory()
+        self.update_field(path, self.sorted_dir_f)
 
-        self.sorted_dir_f.delete(0, END)
-        self.sorted_dir_f.insert(0, path)
+    def update_field(self, path, field):
+        field.delete(0, END)
+        field.insert(0, path)
 
     def get_sheet_names(self) -> list:
         file = pd.ExcelFile(self.excel_path_f.get())
@@ -116,11 +114,11 @@ class SorterGUI(Tk):
         self.info.configure(text='Операция успешно выполнена')
 
 
-def run():
+def main():
     sorter = SorterGUI()
     sorter.title("Сортировка PDF файлов на основе книги Excel")
     sorter.mainloop()
 
 
 if __name__ == "__main__":
-    run()
+    main()
