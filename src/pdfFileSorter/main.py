@@ -44,7 +44,7 @@ class SorterGUI(Tk):
         self.excel_path_b = Button(self, text='Выбрать', command=self.select_excel_file)
         self.excel_path_b.grid(row=1, column=1, padx=5, pady=5)
 
-        self.unsorted_dir_b = Button(self, text='Выбрать')
+        self.unsorted_dir_b = Button(self, text='Выбрать', command=self.select_unsorted_dir)
         self.unsorted_dir_b.grid(row=3, column=1, padx=5, pady=5)
 
         self.sorted_dir_b = Button(self, text='Выбрать')
@@ -59,6 +59,12 @@ class SorterGUI(Tk):
 
         self.excel_path_f.delete(0, END)
         self.excel_path_f.insert(0, path)
+
+    def select_unsorted_dir(self):
+        path = fd.askdirectory()
+
+        self.unsorted_dir_f.delete(0, END)
+        self.unsorted_dir_f.insert(0, path)
 
 
 def run():
