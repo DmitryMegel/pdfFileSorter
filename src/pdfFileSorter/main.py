@@ -50,7 +50,7 @@ class SorterGUI(Tk):
         self.sorted_dir_b = Button(self, text='Выбрать', command=self.select_sorted_dir)
         self.sorted_dir_b.grid(row=5, column=1, padx=5, pady=5)
 
-        self.sort_b = Button(self, text='Сортировать')
+        self.sort_b = Button(self, text='Сортировать', command=self.run)
         self.sort_b.grid(row=6, column=0, pady=5)
 
     def select_excel_file(self):
@@ -71,6 +71,49 @@ class SorterGUI(Tk):
 
         self.sorted_dir_f.delete(0, END)
         self.sorted_dir_f.insert(0, path)
+
+    def get_sheet_names(self) -> list:
+        file = pd.ExcelFile(self.excel_path_f.get())
+        return file.sheet_names
+
+    def create_folders(self, names: list):
+        for name in names:
+            path = os.path.join(self.sorted_dir_f.get(), name)
+            if not os.path.exists(path):
+                os.mkdir(path)
+
+    def get_pdf_names(self, list_names: list) -> dict:
+        pdf_names = {}
+        cols = [1]
+
+        for sheet_name in list_names:
+            if sheet_name == 'Общая':
+                continue
+
+            dataframe = pd.read_excel(self.excel_path_f.get(), sheet_name=sheet_name, usecols=cols, skiprows=1)
+            datas = dataframe.iloc[:, 0].tolist()
+            datas = [i for i in datas if i != ' ']
+            pdf_names.__setitem__(sheet_name, datas)
+
+        return pdf_names
+
+    def copy(self, pdf_names: dict) -> None:
+
+        for key, val in pdf_names.items():
+            for value in val:
+                name = f'{value}.pdf'
+                path_old = os.path.join(self.unsorted_dir_f.get(), name)
+                path_new = os.path.join(self.sorted_dir_f.get(), key, name)
+
+                if not os.path.exists(path_new):
+                    shutil.copy(path_old, path_new)
+
+    def run(self):
+        sheet_names = self.get_sheet_names()
+        self.create_folders(sheet_names)
+        pdf_names = self.get_pdf_names(sheet_names)
+        self.copy(pdf_names)
+        self.info.configure(text='Операция успешно выполнена')
 
 
 
