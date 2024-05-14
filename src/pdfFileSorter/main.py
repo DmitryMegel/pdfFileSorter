@@ -1,5 +1,6 @@
 import os.path
 import shutil
+import webbrowser
 from tkinter import *
 from tkinter import filedialog
 
@@ -74,12 +75,14 @@ class SorterGUI(Tk):
         self.update_field(path, self.sorted_dir_f)
         self.info_log.insert(END, f'Выбрана папка, куда будет производиться сортировка: {path}\n')
 
-
     def update_field(self, path, field):
         field.config(state='normal')
         field.delete(0, END)
         field.insert(0, path)
         field.config(state='disabled')
+
+    def open_result_dir(self):
+        webbrowser.open(self.sorted_dir_f.get())
 
     def get_sheet_names(self) -> list:
         file = pd.ExcelFile(self.excel_path_f.get())
@@ -136,6 +139,7 @@ class SorterGUI(Tk):
                 self.save_with_sort(pdf_names)
                 self.info_log.insert(END, f'INFO: PDF файлы распределены по папкам\n')
                 self.info_log.insert(END, 'INFO: Сортировка завершена\n')
+                self.result_b.config(state='normal', command=self.open_result_dir)
             else:
                 self.info_log.insert(END, 'WARNING: Заполнены не все поля\n')
         except IndexError:
