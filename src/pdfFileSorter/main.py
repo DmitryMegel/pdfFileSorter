@@ -62,14 +62,18 @@ class SorterGUI(Tk):
         types = (('Excel файлы', '*.xls;*.xlsx;*.xlsm'),)
         path = filedialog.askopenfilename(filetypes=types)
         self.update_field(path, self.excel_path_f)
+        self.info_log.insert(END, f'Выбран excel файл: {path}\n')
 
     def select_unsorted_dir(self):
         path = filedialog.askdirectory()
         self.update_field(path, self.unsorted_dir_f)
+        self.info_log.insert(END, f'Выбрана папка с PDF файлами: {path}\n')
 
     def select_sorted_dir(self):
         path = filedialog.askdirectory()
         self.update_field(path, self.sorted_dir_f)
+        self.info_log.insert(END, f'Выбрана папка, куда будет производиться сортировка: {path}\n')
+
 
     def update_field(self, path, field):
         field.config(state='normal')
@@ -116,22 +120,26 @@ class SorterGUI(Tk):
                 except FileNotFoundError:
                     not_found_files.append(name)
 
-        # if not_found_files:
-            # self.info.config(text=f'Операция выполнена частично. \nНе найдены файлы: {not_found_files}')
-        # else:
-            # self.info.config(text='Операция успешно выполнена')
+        if not_found_files:
+            self.info_log.insert(END, 'WARNING: Операция выполнена частично\n')
+            self.info_log.insert(END, f'WARNING: Не найдены файлы: {not_found_files}\n')
 
     def run(self):
         try:
             if self.excel_path_f.get() and self.unsorted_dir_f.get() and self.sorted_dir_f.get():
                 sheet_names = self.get_sheet_names()
+                self.info_log.insert(END, f'\nINFO: Список листов файла excel: {sheet_names}\n')
                 pdf_names = self.get_pdf_names(sheet_names)
+                self.info_log.insert(END, 'INFO: Начало сортировки\n')
                 self.create_folders(sheet_names)
+                self.info_log.insert(END, f'INFO: Сгенерированы папки\n')
                 self.save_with_sort(pdf_names)
+                self.info_log.insert(END, f'INFO: PDF файлы распределены по папкам\n')
+                self.info_log.insert(END, 'INFO: Сортировка завершена\n')
             else:
-                self.info.config(text='Заполнены не все поля')
+                self.info_log.insert(END, 'WARNING: Заполнены не все поля\n')
         except IndexError:
-            self.info.config(text='Книга excel не подходит или имеет ошибки')
+            self.info_log.insert(END, 'ERROR: Книга excel не подходит или имеет ошибки\n')
 
 
 def main():
