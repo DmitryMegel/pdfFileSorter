@@ -1,6 +1,7 @@
 import os.path
 import shutil
-from tkinter import filedialog as fd, Tk, Button, Label, Entry, END
+from tkinter import *
+from tkinter import filedialog
 
 import pandas as pd
 
@@ -20,50 +21,54 @@ class SorterGUI(Tk):
     def __init__(self):
         super().__init__()
 
-        self.excel_path_lb = Label(self, text="Книга Excel:")
-        self.excel_path_lb.grid(row=0, column=0)
+        frame_1 = LabelFrame(text='Файл Excel:')
+        frame_2 = LabelFrame(text="Папка с PDF файлами:")
+        frame_3 = LabelFrame(text="Папка для сортировки:")
+        frame_4 = Frame()
+        frame_5 = Frame()
 
-        self.unsorted_dir_lb = Label(self, text="Папка с PDF файлами:")
-        self.unsorted_dir_lb.grid(row=2, column=0)
+        self.excel_path_f = Entry(frame_1, state='disabled')
+        self.unsorted_dir_f = Entry(frame_2, state='disabled')
+        self.sorted_dir_f = Entry(frame_3, state='disabled')
 
-        self.sorted_dir_lb = Label(self, text="Папка для сортировки:")
-        self.sorted_dir_lb.grid(row=4, column=0)
+        self.excel_path_b = Button(frame_1, text='Выбрать', command=self.select_excel_file)
+        self.unsorted_dir_b = Button(frame_2, text='Выбрать', command=self.select_unsorted_dir)
+        self.sorted_dir_b = Button(frame_3, text='Выбрать', command=self.select_sorted_dir)
+        self.sort_b = Button(frame_4, text='Сортировать', command=self.run)
+        self.result_b = Button(frame_4, text='Перейти в папку', state='disabled')
 
-        self.info = Label(self)
-        self.info.grid(row=7, column=0)
+        self.info_log = Text(frame_5, wrap=WORD)
 
-        self.excel_path_f = Entry(self, width=80, state='disabled')
-        self.excel_path_f.grid(row=1, column=0, padx=5, pady=5)
+        frame_1.pack(fill=X, expand=True)
+        self.excel_path_f.pack(side=LEFT, fill=X, expand=True)
+        self.excel_path_b.pack(side=LEFT)
 
-        self.unsorted_dir_f = Entry(self, width=80, state='disabled')
-        self.unsorted_dir_f.grid(row=3, column=0, padx=5, pady=5)
+        frame_2.pack(fill=X, expand=True)
+        self.unsorted_dir_f.pack(side=LEFT, fill=X, expand=True)
+        self.unsorted_dir_b.pack(side=LEFT)
 
-        self.sorted_dir_f = Entry(self, width=80, state='disabled')
-        self.sorted_dir_f.grid(row=5, column=0, padx=5, pady=5)
+        frame_3.pack(fill=X, expand=True)
+        self.sorted_dir_f.pack(side=LEFT, fill=X, expand=True)
+        self.sorted_dir_b.pack(side=LEFT)
 
-        self.excel_path_b = Button(self, text='Выбрать', command=self.select_excel_file)
-        self.excel_path_b.grid(row=1, column=1, padx=5, pady=5)
+        frame_4.pack()
+        self.sort_b.pack(side=LEFT, padx=(10, 10), pady=(10, 10))
+        self.result_b.pack(side=LEFT)
 
-        self.unsorted_dir_b = Button(self, text='Выбрать', command=self.select_unsorted_dir)
-        self.unsorted_dir_b.grid(row=3, column=1, padx=5, pady=5)
-
-        self.sorted_dir_b = Button(self, text='Выбрать', command=self.select_sorted_dir)
-        self.sorted_dir_b.grid(row=5, column=1, padx=5, pady=5)
-
-        self.sort_b = Button(self, text='Сортировать', command=self.run)
-        self.sort_b.grid(row=6, column=0, pady=5)
+        frame_5.pack()
+        self.info_log.pack(side=LEFT)
 
     def select_excel_file(self):
         types = (('Excel файлы', '*.xls;*.xlsx;*.xlsm'),)
-        path = fd.askopenfilename(filetypes=types)
+        path = filedialog.askopenfilename(filetypes=types)
         self.update_field(path, self.excel_path_f)
 
     def select_unsorted_dir(self):
-        path = fd.askdirectory()
+        path = filedialog.askdirectory()
         self.update_field(path, self.unsorted_dir_f)
 
     def select_sorted_dir(self):
-        path = fd.askdirectory()
+        path = filedialog.askdirectory()
         self.update_field(path, self.sorted_dir_f)
 
     def update_field(self, path, field):
@@ -71,7 +76,6 @@ class SorterGUI(Tk):
         field.delete(0, END)
         field.insert(0, path)
         field.config(state='disabled')
-        self.info.config(text='')
 
     def get_sheet_names(self) -> list:
         file = pd.ExcelFile(self.excel_path_f.get())
@@ -112,10 +116,10 @@ class SorterGUI(Tk):
                 except FileNotFoundError:
                     not_found_files.append(name)
 
-        if not_found_files:
-            self.info.config(text=f'Операция выполнена частично. \nНе найдены файлы: {not_found_files}')
-        else:
-            self.info.config(text='Операция успешно выполнена')
+        # if not_found_files:
+            # self.info.config(text=f'Операция выполнена частично. \nНе найдены файлы: {not_found_files}')
+        # else:
+            # self.info.config(text='Операция успешно выполнена')
 
     def run(self):
         try:
