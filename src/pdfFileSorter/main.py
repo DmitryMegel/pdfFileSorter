@@ -114,6 +114,7 @@ class SorterGUI(Tk):
         for key, val in pdf_names.items():
             for value in val:
                 name = f'{value}.pdf'
+                name = name.replace('\n', '')
                 try:
                     path_old = os.path.join(self.unsorted_dir_f.get(), name)
                     path_new = os.path.join(self.sorted_dir_f.get(), key, name)
