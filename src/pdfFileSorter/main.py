@@ -98,7 +98,7 @@ class SorterGUI(Tk):
 
         return pdf_names
 
-    def copy(self, pdf_names: dict) -> None:
+    def save_with_sort(self, pdf_names: dict) -> None:
         not_found_files = list()
         for key, val in pdf_names.items():
             for value in val:
@@ -121,10 +121,9 @@ class SorterGUI(Tk):
         try:
             if self.excel_path_f.get() and self.unsorted_dir_f.get() and self.sorted_dir_f.get():
                 sheet_names = self.get_sheet_names()
-                self.create_folders(sheet_names)
                 pdf_names = self.get_pdf_names(sheet_names)
-                self.copy(pdf_names)
-
+                self.create_folders(sheet_names)
+                self.save_with_sort(pdf_names)
             else:
                 self.info.config(text='Заполнены не все поля')
         except IndexError:
