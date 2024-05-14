@@ -71,6 +71,7 @@ class SorterGUI(Tk):
         field.delete(0, END)
         field.insert(0, path)
         field.config(state='disabled')
+        self.info.config(text='')
 
     def get_sheet_names(self) -> list:
         file = pd.ExcelFile(self.excel_path_f.get())
@@ -98,22 +99,36 @@ class SorterGUI(Tk):
         return pdf_names
 
     def copy(self, pdf_names: dict) -> None:
-
+        not_found_files = list()
         for key, val in pdf_names.items():
             for value in val:
                 name = f'{value}.pdf'
-                path_old = os.path.join(self.unsorted_dir_f.get(), name)
-                path_new = os.path.join(self.sorted_dir_f.get(), key, name)
+                try:
+                    path_old = os.path.join(self.unsorted_dir_f.get(), name)
+                    path_new = os.path.join(self.sorted_dir_f.get(), key, name)
 
-                if not os.path.exists(path_new):
-                    shutil.copy(path_old, path_new)
+                    if not os.path.exists(path_new):
+                        shutil.copy(path_old, path_new)
+                except FileNotFoundError:
+                    not_found_files.append(name)
+
+        if not_found_files:
+            self.info.config(text=f'Операция выполнена частично. \nНе найдены файлы: {not_found_files}')
+        else:
+            self.info.config(text='Операция успешно выполнена')
 
     def run(self):
-        sheet_names = self.get_sheet_names()
-        self.create_folders(sheet_names)
-        pdf_names = self.get_pdf_names(sheet_names)
-        self.copy(pdf_names)
-        self.info.configure(text='Операция успешно выполнена')
+        try:
+            if self.excel_path_f.get() and self.unsorted_dir_f.get() and self.sorted_dir_f.get():
+                sheet_names = self.get_sheet_names()
+                self.create_folders(sheet_names)
+                pdf_names = self.get_pdf_names(sheet_names)
+                self.copy(pdf_names)
+
+            else:
+                self.info.config(text='Заполнены не все поля')
+        except IndexError:
+            self.info.config(text='Книга excel не подходит или имеет ошибки')
 
 
 def main():
