@@ -32,13 +32,13 @@ class SorterGUI(Tk):
         self.info = Label(self)
         self.info.grid(row=7, column=0)
 
-        self.excel_path_f = Entry(self, width=80)
+        self.excel_path_f = Entry(self, width=80, state='disabled')
         self.excel_path_f.grid(row=1, column=0, padx=5, pady=5)
 
-        self.unsorted_dir_f = Entry(self, width=80)
+        self.unsorted_dir_f = Entry(self, width=80, state='disabled')
         self.unsorted_dir_f.grid(row=3, column=0, padx=5, pady=5)
 
-        self.sorted_dir_f = Entry(self, width=80)
+        self.sorted_dir_f = Entry(self, width=80, state='disabled')
         self.sorted_dir_f.grid(row=5, column=0, padx=5, pady=5)
 
         self.excel_path_b = Button(self, text='Выбрать', command=self.select_excel_file)
@@ -67,8 +67,10 @@ class SorterGUI(Tk):
         self.update_field(path, self.sorted_dir_f)
 
     def update_field(self, path, field):
+        field.config(state='normal')
         field.delete(0, END)
         field.insert(0, path)
+        field.config(state='disabled')
 
     def get_sheet_names(self) -> list:
         file = pd.ExcelFile(self.excel_path_f.get())
