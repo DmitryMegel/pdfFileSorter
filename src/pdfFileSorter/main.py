@@ -1,9 +1,13 @@
 import os.path
 import shutil
 import webbrowser
+from datetime import datetime
+from threading import Thread
 from tkinter import *
 from tkinter import filedialog
+from tkinter.ttk import Progressbar
 
+import openpyxl
 import pandas as pd
 
 """
@@ -23,128 +27,171 @@ class SorterGUI(Tk):
         super().__init__()
 
         frame_1 = LabelFrame(text='Файл Excel:')
-        frame_2 = LabelFrame(text="Папка с PDF файлами:")
-        frame_3 = LabelFrame(text="Папка для сортировки:")
-        frame_4 = Frame()
-        frame_5 = Frame()
-
-        self.excel_path_f = Entry(frame_1, state='disabled')
-        self.unsorted_dir_f = Entry(frame_2, state='disabled')
-        self.sorted_dir_f = Entry(frame_3, state='disabled')
-
-        self.excel_path_b = Button(frame_1, text='Выбрать', command=self.select_excel_file)
-        self.unsorted_dir_b = Button(frame_2, text='Выбрать', command=self.select_unsorted_dir)
-        self.sorted_dir_b = Button(frame_3, text='Выбрать', command=self.select_sorted_dir)
-        self.sort_b = Button(frame_4, text='Сортировать', command=self.run)
-        self.result_b = Button(frame_4, text='Перейти в папку', state='disabled')
-
-        self.info_log = Text(frame_5, wrap=WORD)
-
         frame_1.pack(fill=X, expand=True)
-        self.excel_path_f.pack(side=LEFT, fill=X, expand=True)
-        self.excel_path_b.pack(side=LEFT)
+        self.file_path = Entry(frame_1, state='disabled', width=100)
+        self.file_path.pack(side=LEFT, fill=X, expand=True)
+        self.file_button = Button(frame_1, text='Выбрать', command=self.choose_excel_file)
+        self.file_button.pack(side=LEFT)
 
+        frame_2 = LabelFrame(text="Папка с PDF файлами:")
         frame_2.pack(fill=X, expand=True)
-        self.unsorted_dir_f.pack(side=LEFT, fill=X, expand=True)
-        self.unsorted_dir_b.pack(side=LEFT)
+        self.pdf_folder = Entry(frame_2, state='disabled')
+        self.pdf_folder.pack(side=LEFT, fill=X, expand=True)
+        self.pdf_folder_button = Button(frame_2, text='Выбрать', command=lambda: self.choose_folder(self.pdf_folder))
+        self.pdf_folder_button.pack(side=LEFT)
 
+        frame_3 = LabelFrame(text="Сортировать в папку:")
         frame_3.pack(fill=X, expand=True)
-        self.sorted_dir_f.pack(side=LEFT, fill=X, expand=True)
-        self.sorted_dir_b.pack(side=LEFT)
+        self.result_folder = Entry(frame_3, state='disabled')
+        self.result_folder_button = Button(frame_3, text='Выбрать', command=lambda: self.choose_folder(self.result_folder))
+        self.result_folder.pack(side=LEFT, fill=X, expand=True)
+        self.result_folder_button.pack(side=LEFT)
 
+        frame_4 = Frame()
         frame_4.pack()
-        self.sort_b.pack(side=LEFT, padx=(10, 10), pady=(10, 10))
-        self.result_b.pack(side=LEFT)
+        self.sort_button = Button(frame_4, text='Сортировать', command=self.start_sort)
+        self.to_folder_button = Button(frame_4, text='Перейти в папку')
+        self.to_log = Button(frame_4, text='Открыть отчет')
+        self.log_file = ''
 
-        frame_5.pack()
-        self.info_log.pack(side=LEFT)
+        frame_5 = Frame()
+        frame_5.pack(fill=X, expand=True)
+        self.progressbar = Progressbar(frame_5, mode="indeterminate")
+        self.info = Label(frame_5)
+        self.info.pack(pady=(10, 10))
 
-    def select_excel_file(self):
+    def choose_excel_file(self):
         types = (('Excel файлы', '*.xls;*.xlsx;*.xlsm'),)
         path = filedialog.askopenfilename(filetypes=types)
-        self.update_field(path, self.excel_path_f)
-        self.info_log.insert(END, f'Выбран excel файл: {path}\n')
+        self.update_fields(path, self.file_path)
 
-    def select_unsorted_dir(self):
+    def choose_folder(self, folder):
         path = filedialog.askdirectory()
-        self.update_field(path, self.unsorted_dir_f)
-        self.info_log.insert(END, f'Выбрана папка с PDF файлами: {path}\n')
+        self.update_fields(path, folder)
 
-    def select_sorted_dir(self):
-        path = filedialog.askdirectory()
-        self.update_field(path, self.sorted_dir_f)
-        self.info_log.insert(END, f'Выбрана папка, куда будет производиться сортировка: {path}\n')
-
-    def update_field(self, path, field):
-        field.config(state='normal')
+    def update_fields(self, path, field):
+        field['state'] = 'normal'
         field.delete(0, END)
         field.insert(0, path)
-        field.config(state='disabled')
+        field['state'] = 'disabled'
 
-    def open_result_dir(self):
-        webbrowser.open(self.sorted_dir_f.get())
+        self.to_folder_button.pack_forget()
+        self.to_log.pack_forget()
+        self.info['text'] = ''
+
+        if self.file_path.get() and self.pdf_folder.get() and self.result_folder.get():
+            self.sort_button.pack(side=LEFT, padx=(10, 10), pady=(10, 10))
+        else:
+            self.sort_button.pack_forget()
 
     def get_sheet_names(self) -> list:
-        file = pd.ExcelFile(self.excel_path_f.get())
-        return file.sheet_names
+        wb = openpyxl.load_workbook(self.file_path.get())
 
-    def create_folders(self, names: list):
-        for name in names:
-            path = os.path.join(self.sorted_dir_f.get(), name)
-            if not os.path.exists(path):
-                os.mkdir(path)
+        sh_names = list()
+        for sheet in wb.worksheets:
+            if sheet.sheet_properties.tabColor and sheet.sheet_properties.tabColor.rgb not in ('FF92D050', 'FFFFC000'):
+                sh_names.append(sheet.title)
 
-    def get_pdf_names(self, list_names: list) -> dict:
-        pdf_names = {}
+        return sh_names
+
+    def get_pdf_names(self) -> dict:
+        pdfs = {}
         cols = [1]
 
-        for sheet_name in list_names:
-            if sheet_name == 'Общая':
-                continue
+        for sheet_name in self.get_sheet_names():
+            dataframe = pd.read_excel(self.file_path.get(), sheet_name=sheet_name, usecols=cols, skiprows=1)
+            if dataframe.columns.values == 'Обозначение':
+                datas = dataframe.iloc[:, 0].tolist()
+                datas = [i for i in datas if i != ' ']
+                pdfs.__setitem__(sheet_name, datas)
 
-            dataframe = pd.read_excel(self.excel_path_f.get(), sheet_name=sheet_name, usecols=cols, skiprows=1)
-            datas = dataframe.iloc[:, 0].tolist()
-            datas = [i for i in datas if i != ' ']
-            pdf_names.__setitem__(sheet_name, datas)
+        pdfs = dict(filter(lambda x: x[1], pdfs.items()))
+        return pdfs
 
-        return pdf_names
+    def create_folder(self, name):
+        path = os.path.join(self.result_folder.get(), name)
+        if not os.path.exists(path):
+            os.mkdir(path)
 
-    def save_with_sort(self, pdf_names: dict) -> None:
-        not_found_files = list()
-        for key, val in pdf_names.items():
+    def open_log(self):
+        path = os.path.abspath(self.log_file)
+        webbrowser.open(path)
+
+    def add_log_file(self, infos):
+        dt_string = datetime.now().strftime("%d%m%Y_%H%M%S")
+        infos = sorted(infos)
+
+        if not os.path.exists('logs'):
+            os.mkdir('logs')
+
+        self.log_file = f'logs/log_{dt_string}.txt'
+
+        log_file1 = open(self.log_file, 'w')
+        log_file1.write(f'Операция выполнена частично. Не найдены файлы ({len(infos)} шт.):\n')
+        log_file1.write('\n'.join(infos))
+        log_file1.close()
+
+    def copy_pdf_file(self, sheet_name, name):
+        path_from = os.path.join(self.pdf_folder.get(), name)
+        path_to = os.path.join(self.result_folder.get(), sheet_name, name)
+
+        if not os.path.exists(path_to):
+            shutil.copy(path_from, path_to)
+
+        return name
+
+    def sort_all_files(self, pdfs):
+        not_found_files = set()
+
+        for key, val in pdfs.items():
+            self.create_folder(key)
+
             for value in val:
-                name = f'{value}.pdf'
-                name = name.replace('\n', '')
-                try:
-                    path_old = os.path.join(self.unsorted_dir_f.get(), name)
-                    path_new = os.path.join(self.sorted_dir_f.get(), key, name)
+                if pd.isna(value):
+                    continue
 
-                    if not os.path.exists(path_new):
-                        shutil.copy(path_old, path_new)
+                name = f'{str(value).strip()}.pdf'.replace('\n', '')
+                try:
+                    self.copy_pdf_file(key, name)
                 except FileNotFoundError:
-                    not_found_files.append(name)
+                    not_found_files.add(name)
 
         if not_found_files:
-            self.info_log.insert(END, 'WARNING: Операция выполнена частично\n')
-            self.info_log.insert(END, f'WARNING: Не найдены файлы: {not_found_files}\n')
+            self.add_log_file(not_found_files)
+            self.open_log()
+
+        self.info['text'] = 'Сортировка завершена'
+
+    def pack_result_buttons(self):
+        self.info['text'] = 'Сортировка завершена'
+        self.to_folder_button.pack(side=LEFT, padx=(10, 10))
+        self.to_folder_button['command'] = lambda: webbrowser.open(self.result_folder.get())
+
+        if self.log_file:
+            self.to_log.pack(side=LEFT, padx=(10, 10))
+            self.to_log.config(command=self.open_log)
+
+    def start_sort(self):
+        self.progressbar.pack(fill=X, expand=True)
+        self.to_folder_button.pack_forget()
+        self.to_log.pack_forget()
+        self.info['text'] = ''
+        self.progressbar.start()
+
+        Thread(target=self.run).start()
 
     def run(self):
         try:
-            if self.excel_path_f.get() and self.unsorted_dir_f.get() and self.sorted_dir_f.get():
-                sheet_names = self.get_sheet_names()
-                self.info_log.insert(END, f'\nINFO: Список листов файла excel: {sheet_names}\n')
-                pdf_names = self.get_pdf_names(sheet_names)
-                self.info_log.insert(END, 'INFO: Начало сортировки\n')
-                self.create_folders(sheet_names)
-                self.info_log.insert(END, f'INFO: Сгенерированы папки\n')
-                self.save_with_sort(pdf_names)
-                self.info_log.insert(END, f'INFO: PDF файлы распределены по папкам\n')
-                self.info_log.insert(END, 'INFO: Сортировка завершена\n')
-                self.result_b.config(state='normal', command=self.open_result_dir)
-            else:
-                self.info_log.insert(END, 'WARNING: Заполнены не все поля\n')
+            pdf_names = self.get_pdf_names()
+            self.sort_all_files(pdf_names)
+            self.pack_result_buttons()
         except IndexError:
-            self.info_log.insert(END, 'ERROR: Книга excel не подходит или имеет ошибки\n')
+            self.info['text'] = 'Книга excel не подходит или имеет ошибки'
+        except:
+            self.info['text'] = 'Произошла непредвиденная ошибка'
+
+        self.progressbar.stop()
+        self.progressbar.pack_forget()
 
 
 def main():
